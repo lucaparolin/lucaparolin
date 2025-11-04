@@ -29,14 +29,14 @@ builder.Services.AddCors(options =>
 
 // Registrazione Repository (ADO.NET)
 builder.Services.AddScoped<IFamiglieRepository, FamiglieRepository>();
-// Aggiungere qui gli altri repository quando verranno creati:
-// builder.Services.AddScoped<IUtentiRepository, UtentiRepository>();
-// builder.Services.AddScoped<IAssistentiRepository, AssistentiRepository>();
-// builder.Services.AddScoped<IConversazioniRepository, ConversazioniRepository>();
-// builder.Services.AddScoped<IMessaggiRepository, MessaggiRepository>();
-// builder.Services.AddScoped<IDocumentiRepository, DocumentiRepository>();
-// builder.Services.AddScoped<IConfigurazioniAIRepository, ConfigurazioniAIRepository>();
-// builder.Services.AddScoped<ILogAttivitaRepository, LogAttivitaRepository>();
+builder.Services.AddScoped<IUtentiRepository, UtentiRepository>();
+builder.Services.AddScoped<IAssistentiRepository, AssistentiRepository>();
+builder.Services.AddScoped<IAssistentiFamiglieRepository, AssistentiFamiglieRepository>();
+builder.Services.AddScoped<IConversazioniRepository, ConversazioniRepository>();
+builder.Services.AddScoped<IMessaggiRepository, MessaggiRepository>();
+builder.Services.AddScoped<IDocumentiRepository, DocumentiRepository>();
+builder.Services.AddScoped<IConfigurazioniAIRepository, ConfigurazioniAIRepository>();
+builder.Services.AddScoped<ILogAttivitaRepository, LogAttivitaRepository>();
 
 // Registrazione Servizi
 // builder.Services.AddScoped<IFamiglieService, FamiglieService>();
