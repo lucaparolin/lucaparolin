@@ -1,3 +1,8 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using NugoloFamily.API.Middleware;
 using NugoloFamily.Core.Interfaces.Repositories;
 using NugoloFamily.Core.Interfaces.Services;
 using NugoloFamily.Core.Services;
@@ -16,6 +21,31 @@ builder.Services.AddSwaggerGen(options =>
         Title = "NugoloFamily API",
         Version = "v1",
         Description = "API per l'assistente familiare digitale NugoloFamily"
+    });
+
+    // Configurazione autenticazione JWT in Swagger
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
     });
 });
 
@@ -57,9 +87,40 @@ builder.Services.AddScoped<IConversazioniService, ConversazioniService>();
 builder.Services.AddScoped<IMessaggiService, MessaggiService>();
 builder.Services.AddScoped<IDocumentiService, DocumentiService>();
 
-// Configurazione JWT Authentication (da implementare completamente)
-// builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-//     .AddJwtBearer(options => { ... });
+// Configurazione JWT Authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
+            ValidateIssuer = true,
+            ValidIssuer = jwtIssuer,
+            ValidateAudience = true,
+            ValidAudience = jwtAudience,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
+                {
+                    context.Response.Headers.Add("Token-Expired", "true");
+                }
+                return Task.CompletedTask;
+            }
+        };
+    });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Amministratore", policy => policy.RequireRole("Amministratore"));
+    options.AddPolicy("Familiare", policy => policy.RequireRole("Familiare", "Amministratore"));
+});
 
 var app = builder.Build();
 
@@ -73,6 +134,10 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseCors("AllowAll");
+
+// Middleware custom
+app.UseMiddleware<JwtAuthenticationMiddleware>();
+app.UseMiddleware<MultiTenantMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();
