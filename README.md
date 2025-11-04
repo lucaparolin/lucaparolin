@@ -280,4 +280,4 @@ Tutti i diritti riservati
 
 ## Contatti
 
-Per informazioni: info@nugolofamily.com
+Per informazioni: info@nugolo.it
