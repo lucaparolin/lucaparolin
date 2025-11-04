@@ -135,6 +135,12 @@ app.UseHttpsRedirection();
 
 app.UseCors("AllowAll");
 
+// Servire file statici (CSS, JS, immagini, ecc.)
+app.UseStaticFiles();
+
+// Abilita il supporto per file di default (index.html)
+app.UseDefaultFiles();
+
 // Middleware custom
 app.UseMiddleware<JwtAuthenticationMiddleware>();
 app.UseMiddleware<MultiTenantMiddleware>();
