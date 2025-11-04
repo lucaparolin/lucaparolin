@@ -1,5 +1,8 @@
 using NugoloFamily.Core.Interfaces.Repositories;
+using NugoloFamily.Core.Interfaces.Services;
+using NugoloFamily.Core.Services;
 using NugoloFamily.Infrastructure.Data.Repositories;
+using NugoloFamily.Shared.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,11 +41,23 @@ builder.Services.AddScoped<IDocumentiRepository, DocumentiRepository>();
 builder.Services.AddScoped<IConfigurazioniAIRepository, ConfigurazioniAIRepository>();
 builder.Services.AddScoped<ILogAttivitaRepository, LogAttivitaRepository>();
 
-// Registrazione Servizi
-// builder.Services.AddScoped<IFamiglieService, FamiglieService>();
-// Aggiungere qui gli altri servizi quando verranno creati
+// Configurazione JWT Helper
+var jwtSecret = builder.Configuration["JwtSettings:Secret"] ?? throw new InvalidOperationException("JWT Secret non configurato");
+var jwtIssuer = builder.Configuration["JwtSettings:Issuer"] ?? "NugoloFamily";
+var jwtAudience = builder.Configuration["JwtSettings:Audience"] ?? "NugoloFamilyClients";
+var jwtExpiration = int.Parse(builder.Configuration["JwtSettings:ExpirationMinutes"] ?? "60");
 
-// Configurazione JWT Authentication (da implementare)
+builder.Services.AddSingleton(new JwtHelper(jwtSecret, jwtIssuer, jwtAudience, jwtExpiration));
+
+// Registrazione Servizi Business Logic
+builder.Services.AddScoped<IFamiglieService, FamiglieService>();
+builder.Services.AddScoped<IUtentiService, UtentiService>();
+builder.Services.AddScoped<IAssistentiService, AssistentiService>();
+builder.Services.AddScoped<IConversazioniService, ConversazioniService>();
+builder.Services.AddScoped<IMessaggiService, MessaggiService>();
+builder.Services.AddScoped<IDocumentiService, DocumentiService>();
+
+// Configurazione JWT Authentication (da implementare completamente)
 // builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 //     .AddJwtBearer(options => { ... });
 
