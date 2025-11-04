@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="NugoloFamily - Assistente Familiare Digitale">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <meta name="theme-color" content="#1e40af">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+  <title>Home - NugoloFamily</title>
+
+  <!-- Favicon -->
+  <link rel="icon" href="img/core-img/favicon.ico">
+  <link rel="apple-touch-icon" href="img/icons/icon-96x96.png">
+
+  <!-- Style CSS -->
+  <link rel="stylesheet" href="css/template-style.css">
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+</head>
+
+<body>
+  <!-- Preloader -->
+  <div id="preloader">
+    <div class="spinner-grow text-primary" role="status">
+      <span class="visually-hidden">Caricamento...</span>
+    </div>
+  </div>
+
+  <!-- Internet Connection Status -->
+  <div class="internet-connection-status" id="internetStatus"></div>
+
+  <!-- Header Area -->
+  <div class="header-area" id="headerArea">
+    <div class="container">
+      <div class="header-content header-style-five position-relative d-flex align-items-center justify-content-between">
+        <!-- Logo & Welcome -->
+        <div class="logo-wrapper">
+          <h5 class="mb-0">NugoloFamily</h5>
+          <small class="text-muted" id="welcomeText">Benvenuto</small>
+        </div>
+
+        <!-- Settings Icon -->
+        <div class="navbar--toggler">
+          <a href="settings.html">
+            <i class="bi bi-gear"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-content-wrapper py-3">
+    <div class="container">
+
+      <!-- Quick Stats Card -->
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-4 text-center">
+              <h6 class="mb-1" id="assistentiAttivi">--</h6>
+              <small class="text-muted">Assistenti Attivi</small>
+            </div>
+            <div class="col-4 text-center">
+              <h6 class="mb-1" id="conversazioniTotali">--</h6>
+              <small class="text-muted">Conversazioni</small>
+            </div>
+            <div class="col-4 text-center">
+              <h6 class="mb-1" id="documentiTotali">--</h6>
+              <small class="text-muted">Documenti</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Assistenti Section -->
+      <div class="section-heading d-flex align-items-center justify-content-between mb-3">
+        <h6 class="mb-0">I Tuoi Assistenti</h6>
+        <a href="#" class="btn btn-sm btn-creative btn-primary" data-bs-toggle="modal" data-bs-target="#assistentiModal">
+          <i class="bi bi-plus-circle me-1"></i> Gestisci
+        </a>
+      </div>
+
+      <!-- Assistenti Grid -->
+      <div class="row g-3 mb-4" id="assistentiContainer">
+        <!-- Caricamento dinamico assistenti via JS -->
+        <div class="col-12 text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Caricamento assistenti...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Conversazioni Recenti -->
+      <div class="section-heading mb-3">
+        <h6 class="mb-0">Conversazioni Recenti</h6>
+      </div>
+
+      <div class="list-group mb-3" id="conversazioniContainer">
+        <!-- Caricamento dinamico conversazioni -->
+        <div class="text-center py-3">
+          <small class="text-muted">Caricamento...</small>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Modal Gestione Assistenti -->
+  <div class="modal fade" id="assistentiModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h6 class="modal-title">Gestisci Assistenti</h6>
+          <button class="btn btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="tuttiAssistentiList">
+            <!-- Popolato dinamicamente -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Nav -->
+  <div class="footer-nav-area" id="footerNav">
+    <div class="container px-0">
+      <div class="footer-nav position-relative">
+        <ul class="h-100 d-flex align-items-center justify-content-between ps-0">
+          <li class="active">
+            <a href="home.html">
+              <i class="bi bi-house"></i>
+              <span>Home</span>
+            </a>
+          </li>
+          <li>
+            <a href="chat-users.html">
+              <i class="bi bi-chat-dots"></i>
+              <span>Chat</span>
+            </a>
+          </li>
+          <li>
+            <a href="documenti.html">
+              <i class="bi bi-folder"></i>
+              <span>Documenti</span>
+            </a>
+          </li>
+          <li>
+            <a href="settings.html">
+              <i class="bi bi-gear"></i>
+              <span>Impostazioni</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
+
+  <!-- JavaScript Files -->
+  <script src="js/bootstrap.bundle.min.js"></script>
+  <script src="js/slideToggle.min.js"></script>
+  <script src="js/internet-status.js"></script>
+  <script src="js/dark-rtl.js"></script>
+  <script src="js/active.js"></script>
+
+  <!-- API Client & PWA -->
+  <script src="js/api-client.js"></script>
+  <script src="js/pwa-handler.js"></script>
+
+  <!-- Home Logic -->
+  <script>
+    let assistentiAttivi = [];
+    let tuttiAssistenti = [];
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Verifica autenticazione
+      if (!apiClient.isAuthenticated()) {
+        window.location.href = '/login.html';
+        return;
+      }
+
+      // Mostra nome utente
+      const nomeCompleto = localStorage.getItem('nomeCompleto') || localStorage.getItem('username');
+      document.getElementById('welcomeText').textContent = `Benvenuto, ${nomeCompleto}`;
+
+      // Carica dati
+      await Promise.all([
+        loadAssistenti(),
+        loadConversazioni(),
+        loadStats()
+      ]);
+    });
+
+    // Carica gli assistenti attivi per la famiglia
+    async function loadAssistenti() {
+      const familyId = localStorage.getItem('familyId');
+      const container = document.getElementById('assistentiContainer');
+
+      try {
+        assistentiAttivi = await apiClient.getAssistentiFamiglia(familyId);
+
+        if (!assistentiAttivi || assistentiAttivi.length === 0) {
+          container.innerHTML = `
+            <div class="col-12 text-center py-4">
+              <i class="bi bi-robot" style="font-size: 3rem; color: #ccc;"></i>
+              <p class="text-muted mt-2">Nessun assistente attivo</p>
+              <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#assistentiModal">
+                Attiva un Assistente
+              </button>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = assistentiAttivi.map(a => `
+          <div class="col-6">
+            <div class="card assistant-card" onclick="openAssistente(${a.IdAssistente}, '${a.CodiceAssistente}')">
+              <div class="card-body text-center">
+                <div class="assistant-icon mb-2">
+                  <i class="bi ${getAssistantIcon(a.CodiceAssistente)}" style="font-size: 2rem;"></i>
+                </div>
+                <h6 class="mb-1">${a.NomeAssistente}</h6>
+                <small class="text-muted">${a.CodiceAssistente}</small>
+              </div>
+            </div>
+          </div>
+        `).join('');
+
+      } catch (error) {
+        console.error('Errore caricamento assistenti:', error);
+        container.innerHTML = `
+          <div class="col-12">
+            <div class="alert alert-danger">
+              Errore nel caricamento degli assistenti
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // Carica conversazioni recenti
+    async function loadConversazioni() {
+      const familyId = localStorage.getItem('familyId');
+      const container = document.getElementById('conversazioniContainer');
+
+      try {
+        const conversazioni = await apiClient.getConversazioni(familyId);
+
+        if (!conversazioni || conversazioni.length === 0) {
+          container.innerHTML = '<div class="text-center py-3"><small class="text-muted">Nessuna conversazione</small></div>';
+          return;
+        }
+
+        // Prendi solo le ultime 5
+        const recenti = conversazioni.slice(0, 5);
+
+        container.innerHTML = recenti.map(c => `
+          <a href="chat.html?id=${c.IdConversazione}" class="list-group-item list-group-item-action">
+            <div class="d-flex w-100 justify-content-between">
+              <h6 class="mb-1">${c.TitoloConversazione || 'Conversazione'}</h6>
+              <small>${formatDate(c.DataInserimento)}</small>
+            </div>
+            <p class="mb-1 text-muted"><small>${c.NomeAssistente || 'Assistente'}</small></p>
+          </a>
+        `).join('');
+
+      } catch (error) {
+        console.error('Errore caricamento conversazioni:', error);
+        container.innerHTML = '<div class="text-center py-3"><small class="text-danger">Errore caricamento</small></div>';
+      }
+    }
+
+    // Carica statistiche
+    async function loadStats() {
+      const familyId = localStorage.getItem('familyId');
+
+      try {
+        const [conversazioni, documenti] = await Promise.all([
+          apiClient.getConversazioni(familyId),
+          apiClient.getDocumenti(familyId)
+        ]);
+
+        document.getElementById('assistentiAttivi').textContent = assistentiAttivi.length;
+        document.getElementById('conversazioniTotali').textContent = conversazioni?.length || 0;
+        document.getElementById('documentiTotali').textContent = documenti?.length || 0;
+
+      } catch (error) {
+        console.error('Errore caricamento stats:', error);
+      }
+    }
+
+    // Apri conversazione con assistente
+    function openAssistente(idAssistente, codice) {
+      // Cerca se esiste già una conversazione attiva con questo assistente
+      window.location.href = `chat.html?assistente=${idAssistente}&codice=${codice}`;
+    }
+
+    // Icone per gli assistenti
+    function getAssistantIcon(codice) {
+      const icons = {
+        'HUB': 'bi-house-heart',
+        'AGENDA': 'bi-calendar-check',
+        'FINANZE': 'bi-cash-coin',
+        'BANCA': 'bi-bank',
+        'ASSICURAZIONI': 'bi-shield-check',
+        'CUCINA': 'bi-egg-fried',
+        'SALUTE': 'bi-heart-pulse',
+        'DOCUMENTI': 'bi-file-earmark-text',
+        'EMAIL': 'bi-envelope',
+        'CASA': 'bi-house',
+        'VIAGGI': 'bi-airplane',
+        'COMPITI': 'bi-book'
+      };
+      return icons[codice] || 'bi-robot';
+    }
+
+    // Formatta data
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      const oggi = new Date();
+      const diff = oggi - date;
+      const giorni = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+      if (giorni === 0) return 'Oggi';
+      if (giorni === 1) return 'Ieri';
+      if (giorni < 7) return `${giorni} giorni fa`;
+
+      return date.toLocaleDateString('it-IT');
+    }
+  </script>
+</body>
+
+</html>

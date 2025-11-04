@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="NugoloFamily - Chat Assistente">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <meta name="theme-color" content="#1e40af">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+  <title>Chat - NugoloFamily</title>
+
+  <!-- Favicon -->
+  <link rel="icon" href="img/core-img/favicon.ico">
+  <link rel="apple-touch-icon" href="img/icons/icon-96x96.png">
+
+  <!-- Style CSS -->
+  <link rel="stylesheet" href="css/template-style.css">
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+</head>
+
+<body>
+  <!-- Preloader -->
+  <div id="preloader">
+    <div class="spinner-grow text-primary" role="status">
+      <span class="visually-hidden">Caricamento...</span>
+    </div>
+  </div>
+
+  <!-- Internet Connection Status -->
+  <div class="internet-connection-status" id="internetStatus"></div>
+
+  <!-- Header Area -->
+  <div class="header-area" id="headerArea">
+    <div class="container">
+      <div class="header-content position-relative d-flex align-items-center justify-content-between">
+        <!-- Chat User Info -->
+        <div class="chat-user--info d-flex align-items-center">
+          <!-- Back Button -->
+          <div class="back-button">
+            <a href="home.html">
+              <i class="bi bi-arrow-left-short"></i>
+            </a>
+          </div>
+
+          <!-- Assistant Info -->
+          <div class="user-thumbnail-name ms-2">
+            <div class="assistant-icon-small">
+              <i id="assistantIcon" class="bi bi-robot"></i>
+            </div>
+            <div class="info ms-2">
+              <p id="assistantName" class="mb-0">Assistente</p>
+              <span class="active-status text-success">Online</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Info Icon -->
+        <div class="info-icon">
+          <a class="text-secondary" href="#" data-bs-toggle="modal" data-bs-target="#chatInfoModal">
+            <i class="bi bi-info-circle"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Content -->
+  <div class="page-content-wrapper py-3" id="chat-wrapper">
+    <div class="container">
+      <div class="chat-content-wrap" id="chatContent">
+        <!-- Messaggi caricati dinamicamente -->
+        <div class="text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Caricamento conversazione...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Input Area -->
+  <div class="footer-nav-area" id="footerNav">
+    <div class="container px-0">
+      <div class="chat-input-area p-3 bg-white border-top">
+        <form id="chatForm" class="d-flex align-items-center">
+          <input class="form-control me-2" type="text" id="messageInput" placeholder="Scrivi un messaggio..." autocomplete="off">
+
+          <!-- Attach File Button -->
+          <button class="btn btn-sm btn-light me-2" type="button" onclick="document.getElementById('fileInput').click()">
+            <i class="bi bi-paperclip"></i>
+          </button>
+          <input type="file" id="fileInput" style="display:none" accept="image/*,application/pdf,.doc,.docx">
+
+          <!-- Send Button -->
+          <button class="btn btn-primary" type="submit" id="sendBtn">
+            <i class="bi bi-send"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Info Conversazione -->
+  <div class="modal fade" id="chatInfoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h6 class="modal-title">Info Conversazione</h6>
+          <button class="btn btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Titolo Conversazione</label>
+            <input type="text" class="form-control" id="conversationTitle" placeholder="Inserisci un titolo">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Assistente</label>
+            <p id="assistantInfoName" class="mb-0"></p>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Messaggi</label>
+            <p id="messageCount" class="mb-0">--</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-sm btn-danger" onclick="deleteConversation()">Elimina Conversazione</button>
+          <button class="btn btn-sm btn-primary" onclick="saveConversationTitle()">Salva</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
+
+  <!-- JavaScript Files -->
+  <script src="js/bootstrap.bundle.min.js"></script>
+  <script src="js/slideToggle.min.js"></script>
+  <script src="js/internet-status.js"></script>
+  <script src="js/dark-rtl.js"></script>
+  <script src="js/active.js"></script>
+
+  <!-- API Client & PWA -->
+  <script src="js/api-client.js"></script>
+  <script src="js/pwa-handler.js"></script>
+
+  <!-- Chat Logic -->
+  <script>
+    let currentConversationId = null;
+    let currentAssistantId = null;
+    let currentAssistantCode = null;
+    let messages = [];
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Verifica autenticazione
+      if (!apiClient.isAuthenticated()) {
+        window.location.href = '/login.html';
+        return;
+      }
+
+      // Ottieni parametri URL
+      const params = new URLSearchParams(window.location.search);
+      const conversationId = params.get('id');
+      const assistantId = params.get('assistente');
+      const assistantCode = params.get('codice');
+
+      if (conversationId) {
+        // Carica conversazione esistente
+        currentConversationId = parseInt(conversationId);
+        await loadConversation(currentConversationId);
+      } else if (assistantId) {
+        // Nuova conversazione con assistente specifico
+        currentAssistantId = parseInt(assistantId);
+        currentAssistantCode = assistantCode;
+        await createNewConversation(currentAssistantId);
+      } else {
+        // Nessun parametro, torna alla home
+        window.location.href = '/home.html';
+        return;
+      }
+
+      // Setup form
+      document.getElementById('chatForm').addEventListener('submit', sendMessage);
+      document.getElementById('messageInput').focus();
+
+      // Auto-scroll al fondo quando si carica
+      scrollToBottom();
+    });
+
+    // Carica conversazione esistente
+    async function loadConversation(id) {
+      const chatContent = document.getElementById('chatContent');
+
+      try {
+        // Carica dettagli conversazione
+        const conversation = await apiClient.getConversazione(id);
+
+        // Aggiorna header
+        document.getElementById('assistantName').textContent = conversation.NomeAssistente || 'Assistente';
+        document.getElementById('assistantIcon').className = `bi ${getAssistantIcon(conversation.CodiceAssistente)}`;
+        document.getElementById('conversationTitle').value = conversation.TitoloConversazione || '';
+        document.getElementById('assistantInfoName').textContent = conversation.NomeAssistente;
+
+        currentAssistantId = conversation.IdAssistente;
+        currentAssistantCode = conversation.CodiceAssistente;
+
+        // Carica messaggi
+        messages = await apiClient.getMessaggiConversazione(id);
+        renderMessages();
+
+      } catch (error) {
+        console.error('Errore caricamento conversazione:', error);
+        showToast('Errore nel caricamento della conversazione', 'danger');
+        chatContent.innerHTML = `
+          <div class="alert alert-danger">
+            Errore nel caricamento della conversazione
+          </div>
+        `;
+      }
+    }
+
+    // Crea nuova conversazione
+    async function createNewConversation(assistantId) {
+      const familyId = localStorage.getItem('familyId');
+      const userId = localStorage.getItem('userId');
+
+      try {
+        const conversation = await apiClient.createConversazione({
+          IdFamiglia: parseInt(familyId),
+          IdAssistente: assistantId,
+          IdUtente: parseInt(userId),
+          TitoloConversazione: `Nuova conversazione - ${new Date().toLocaleDateString('it-IT')}`,
+          StatoConversazione: 'Attiva'
+        });
+
+        currentConversationId = conversation.IdConversazione;
+
+        // Aggiorna URL senza ricaricare
+        window.history.pushState({}, '', `chat.html?id=${currentConversationId}`);
+
+        // Aggiorna header (nome assistente lo prenderemo dal primo messaggio)
+        document.getElementById('assistantName').textContent = currentAssistantCode || 'Assistente';
+        document.getElementById('assistantIcon').className = `bi ${getAssistantIcon(currentAssistantCode)}`;
+
+        // Mostra area chat vuota
+        renderMessages();
+
+        showToast('Nuova conversazione creata!', 'success');
+
+      } catch (error) {
+        console.error('Errore creazione conversazione:', error);
+        showToast('Errore nella creazione della conversazione', 'danger');
+      }
+    }
+
+    // Renderizza i messaggi
+    function renderMessages() {
+      const chatContent = document.getElementById('chatContent');
+
+      if (!messages || messages.length === 0) {
+        chatContent.innerHTML = `
+          <div class="text-center py-5">
+            <i class="bi bi-chat-dots" style="font-size: 3rem; color: #ccc;"></i>
+            <p class="text-muted mt-3">Inizia una conversazione con il tuo assistente!</p>
+          </div>
+        `;
+        return;
+      }
+
+      chatContent.innerHTML = messages.map(msg => {
+        const isUser = msg.Mittente === 'Utente';
+        const timeStr = new Date(msg.DataInvio).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+
+        return `
+          <div class="single-chat-item ${isUser ? 'text-end' : ''}">
+            ${!isUser ? '<div class="user-avatar mt-1"><i class="bi bi-robot"></i></div>' : ''}
+            <div class="user-message">
+              <div class="message-content ${isUser ? 'bg-primary text-white' : 'bg-light'}">
+                <p class="mb-0">${msg.TestoMessaggio || '(Messaggio multimediale)'}</p>
+                ${msg.URLContenuto ? `<a href="${msg.URLContenuto}" target="_blank" class="text-decoration-underline">Visualizza allegato</a>` : ''}
+              </div>
+              <small class="message-time text-muted">${timeStr}</small>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Aggiorna contatore messaggi nel modal
+      document.getElementById('messageCount').textContent = messages.length;
+
+      scrollToBottom();
+    }
+
+    // Invia messaggio
+    async function sendMessage(e) {
+      e.preventDefault();
+
+      const input = document.getElementById('messageInput');
+      const text = input.value.trim();
+
+      if (!text) return;
+
+      if (!currentConversationId) {
+        showToast('Conversazione non inizializzata', 'danger');
+        return;
+      }
+
+      // Disabilita input durante invio
+      input.disabled = true;
+      document.getElementById('sendBtn').disabled = true;
+
+      try {
+        // Invia messaggio
+        const message = await apiClient.inviaMessaggio({
+          IdConversazione: currentConversationId,
+          TestoMessaggio: text,
+          Mittente: 'Utente',
+          TipoContenuto: 'Testo'
+        });
+
+        // Aggiungi messaggio alla lista
+        messages.push(message);
+        renderMessages();
+
+        // Pulisci input
+        input.value = '';
+
+        // Simula risposta dell'assistente (placeholder - in produzione verrà dall'AI)
+        setTimeout(() => {
+          simulateAssistantResponse(text);
+        }, 1500);
+
+      } catch (error) {
+        console.error('Errore invio messaggio:', error);
+        showToast('Errore nell\'invio del messaggio', 'danger');
+      } finally {
+        input.disabled = false;
+        document.getElementById('sendBtn').disabled = false;
+        input.focus();
+      }
+    }
+
+    // Simula risposta assistente (placeholder per l'integrazione AI)
+    async function simulateAssistantResponse(userMessage) {
+      try {
+        const response = await apiClient.inviaMessaggio({
+          IdConversazione: currentConversationId,
+          TestoMessaggio: `Grazie per il tuo messaggio: "${userMessage}". L'integrazione con l'AI è in fase di sviluppo. Presto potrai ricevere risposte intelligenti!`,
+          Mittente: 'Assistente',
+          TipoContenuto: 'Testo'
+        });
+
+        messages.push(response);
+        renderMessages();
+
+      } catch (error) {
+        console.error('Errore risposta assistente:', error);
+      }
+    }
+
+    // Salva titolo conversazione
+    async function saveConversationTitle() {
+      const title = document.getElementById('conversationTitle').value.trim();
+
+      if (!title) {
+        showToast('Inserisci un titolo', 'warning');
+        return;
+      }
+
+      try {
+        await apiClient.updateConversazione(currentConversationId, {
+          TitoloConversazione: title
+        });
+
+        showToast('Titolo salvato!', 'success');
+
+        // Chiudi modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('chatInfoModal'));
+        modal.hide();
+
+      } catch (error) {
+        console.error('Errore salvataggio titolo:', error);
+        showToast('Errore nel salvataggio', 'danger');
+      }
+    }
+
+    // Elimina conversazione
+    async function deleteConversation() {
+      if (!confirm('Sei sicuro di voler eliminare questa conversazione?')) {
+        return;
+      }
+
+      try {
+        // TODO: Implementare API delete conversazione
+        showToast('Funzionalità in sviluppo', 'info');
+
+        // Temporaneamente, reindirizza alla home
+        // window.location.href = '/home.html';
+
+      } catch (error) {
+        console.error('Errore eliminazione conversazione:', error);
+        showToast('Errore nell\'eliminazione', 'danger');
+      }
+    }
+
+    // Scroll al fondo della chat
+    function scrollToBottom() {
+      setTimeout(() => {
+        const chatWrapper = document.getElementById('chat-wrapper');
+        if (chatWrapper) {
+          chatWrapper.scrollTop = chatWrapper.scrollHeight;
+        }
+      }, 100);
+    }
+
+    // Icone assistenti
+    function getAssistantIcon(codice) {
+      const icons = {
+        'HUB': 'bi-house-heart',
+        'AGENDA': 'bi-calendar-check',
+        'FINANZE': 'bi-cash-coin',
+        'BANCA': 'bi-bank',
+        'ASSICURAZIONI': 'bi-shield-check',
+        'CUCINA': 'bi-egg-fried',
+        'SALUTE': 'bi-heart-pulse',
+        'DOCUMENTI': 'bi-file-earmark-text',
+        'EMAIL': 'bi-envelope',
+        'CASA': 'bi-house',
+        'VIAGGI': 'bi-airplane',
+        'COMPITI': 'bi-book'
+      };
+      return icons[codice] || 'bi-robot';
+    }
+
+    // Gestione upload file
+    document.getElementById('fileInput').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      showToast('Upload documenti in fase di sviluppo', 'info');
+
+      // TODO: Implementare upload file
+      // 1. Convertire file in base64
+      // 2. Chiamare API uploadDocumento
+      // 3. Inviare messaggio con riferimento al documento
+    });
+  </script>
+</body>
+
+</html>

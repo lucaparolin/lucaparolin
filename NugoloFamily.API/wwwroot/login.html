@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="NugoloFamily - Assistente Familiare Digitale">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <meta name="theme-color" content="#1e40af">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+  <title>Login - NugoloFamily</title>
+
+  <!-- Favicon -->
+  <link rel="icon" href="img/core-img/favicon.ico">
+  <link rel="apple-touch-icon" href="img/icons/icon-96x96.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="img/icons/icon-152x152.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="img/icons/icon-167x167.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/icons/icon-180x180.png">
+
+  <!-- Style CSS -->
+  <link rel="stylesheet" href="css/template-style.css">
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+</head>
+
+<body>
+  <!-- Preloader -->
+  <div id="preloader">
+    <div class="spinner-grow text-primary" role="status">
+      <span class="visually-hidden">Caricamento...</span>
+    </div>
+  </div>
+
+  <!-- Internet Connection Status -->
+  <div class="internet-connection-status" id="internetStatus"></div>
+
+  <!-- Login Wrapper Area -->
+  <div class="login-wrapper d-flex align-items-center justify-content-center">
+    <div class="custom-container">
+      <div class="text-center px-4">
+        <img class="login-intro-img" src="img/bg-img/36.png" alt="NugoloFamily">
+        <h4 class="mt-3 mb-1">Benvenuto in NugoloFamily</h4>
+        <p class="text-muted">Il tuo assistente familiare digitale</p>
+      </div>
+
+      <!-- Login Form -->
+      <div class="register-form mt-4">
+        <form id="loginForm">
+          <div class="form-group">
+            <input class="form-control" type="text" id="username" placeholder="Username" required autocomplete="username">
+          </div>
+
+          <div class="form-group position-relative">
+            <input class="form-control" id="password" type="password" placeholder="Password" required autocomplete="current-password">
+            <div class="position-absolute" id="password-visibility">
+              <i class="bi bi-eye"></i>
+              <i class="bi bi-eye-slash"></i>
+            </div>
+          </div>
+
+          <button class="btn btn-primary w-100" type="submit" id="loginBtn">
+            <span id="loginBtnText">Accedi</span>
+            <span id="loginBtnSpinner" class="spinner-border spinner-border-sm ms-2" style="display:none;"></span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Login Meta -->
+      <div class="login-meta-data text-center">
+        <a class="stretched-link forgot-password d-block mt-3 mb-1" href="forget-password.html">Password dimenticata?</a>
+        <p class="mb-0">Non hai un account? <a class="stretched-link" href="register.html">Registrati</a></p>
+      </div>
+
+      <!-- Install PWA Button -->
+      <div class="text-center mt-4">
+        <button id="install-button" class="btn btn-outline-primary" style="display: none;">
+          <i class="bi bi-download me-2"></i>
+          Installa App
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
+
+  <!-- All JavaScript Files -->
+  <script src="js/bootstrap.bundle.min.js"></script>
+  <script src="js/slideToggle.min.js"></script>
+  <script src="js/internet-status.js"></script>
+  <script src="js/dark-rtl.js"></script>
+  <script src="js/active.js"></script>
+
+  <!-- API Client & PWA -->
+  <script src="js/api-client.js"></script>
+  <script src="js/pwa-handler.js"></script>
+
+  <!-- Login Logic -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Verifica se già autenticato
+      if (apiClient.isAuthenticated()) {
+        window.location.href = '/home.html';
+        return;
+      }
+
+      const loginForm = document.getElementById('loginForm');
+      const loginBtn = document.getElementById('loginBtn');
+      const loginBtnText = document.getElementById('loginBtnText');
+      const loginBtnSpinner = document.getElementById('loginBtnSpinner');
+      const usernameInput = document.getElementById('username');
+      const passwordInput = document.getElementById('password');
+
+      // Gestione visibilità password
+      const passwordVisibility = document.getElementById('password-visibility');
+      if (passwordVisibility) {
+        passwordVisibility.addEventListener('click', () => {
+          if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+          } else {
+            passwordInput.type = 'password';
+          }
+        });
+      }
+
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value;
+
+        if (!username || !password) {
+          showToast('Inserisci username e password', 'warning');
+          return;
+        }
+
+        // Disabilita il form durante il login
+        loginBtn.disabled = true;
+        loginBtnText.textContent = 'Accesso in corso...';
+        loginBtnSpinner.style.display = 'inline-block';
+
+        try {
+          // Chiamata API di login
+          const response = await apiClient.login(username, password);
+
+          console.log('Login successful:', response);
+
+          // Mostra successo
+          showToast('Login effettuato con successo!', 'success');
+
+          // Salva informazioni aggiuntive
+          localStorage.setItem('ruolo', response.Utente.Ruolo);
+          localStorage.setItem('nomeCompleto', response.Utente.NomeCompleto || username);
+
+          // Reindirizza alla home dopo 500ms
+          setTimeout(() => {
+            window.location.href = '/home.html';
+          }, 500);
+
+        } catch (error) {
+          console.error('Login error:', error);
+
+          // Mostra errore
+          showToast(error.message || 'Errore durante il login', 'danger');
+
+          // Riabilita il form
+          loginBtn.disabled = false;
+          loginBtnText.textContent = 'Accedi';
+          loginBtnSpinner.style.display = 'none';
+        }
+      });
+
+      // Focus automatico sul campo username
+      usernameInput.focus();
+    });
+  </script>
+</body>
+
+</html>
