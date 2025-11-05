@@ -79,6 +79,15 @@ var jwtExpiration = int.Parse(builder.Configuration["JwtSettings:ExpirationMinut
 
 builder.Services.AddSingleton(new JwtHelper(jwtSecret, jwtIssuer, jwtAudience, jwtExpiration));
 
+// HttpClients per AI Providers
+builder.Services.AddHttpClient("AI_OpenAI");
+builder.Services.AddHttpClient("AI_Claude");
+builder.Services.AddHttpClient("AI_DeepSeek");
+builder.Services.AddHttpClient("AI_Gemini");
+
+// Registrazione AI Provider Factory
+builder.Services.AddScoped<NugoloFamily.Core.Services.AI.AIProviderFactory>();
+
 // Registrazione Servizi Business Logic
 builder.Services.AddScoped<IFamiglieService, FamiglieService>();
 builder.Services.AddScoped<IUtentiService, UtentiService>();
