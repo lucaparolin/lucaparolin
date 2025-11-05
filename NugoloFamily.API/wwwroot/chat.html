@@ -23,6 +23,39 @@
 
   <!-- PWA Manifest -->
   <link rel="manifest" href="manifest.json">
+
+  <!-- Custom Styles for Typing Indicator -->
+  <style>
+    .typing-animation {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 0;
+    }
+    .typing-animation span {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #6c757d;
+      animation: typing 1.4s infinite;
+    }
+    .typing-animation span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    .typing-animation span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+    @keyframes typing {
+      0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.7;
+      }
+      30% {
+        transform: translateY(-10px);
+        opacity: 1;
+      }
+    }
+  </style>
 </head>
 
 <body>
@@ -332,10 +365,31 @@
         // Pulisci input
         input.value = '';
 
-        // Simula risposta dell'assistente (placeholder - in produzione verrà dall'AI)
-        setTimeout(() => {
-          simulateAssistantResponse(text);
-        }, 1500);
+        // Richiedi risposta dall'AI
+        try {
+          // Mostra indicatore "sta scrivendo..."
+          showTypingIndicator();
+
+          const aiResponse = await apiClient.elaboraRispostaAssistente(message.IdMessaggio, currentConversationId);
+
+          // Rimuovi indicatore
+          hideTypingIndicator();
+
+          // Aggiungi risposta AI alla lista
+          messages.push({
+            IdMessaggio: aiResponse.IdMessaggio,
+            TestoMessaggio: aiResponse.TestoRisposta,
+            Mittente: 'Assistente',
+            TipoContenuto: 'Testo',
+            DataInvio: aiResponse.DataRisposta
+          });
+          renderMessages();
+
+        } catch (error) {
+          hideTypingIndicator();
+          console.error('Errore risposta AI:', error);
+          showToast('Errore nella risposta dell\'assistente', 'danger');
+        }
 
       } catch (error) {
         console.error('Errore invio messaggio:', error);
@@ -347,21 +401,30 @@
       }
     }
 
-    // Simula risposta assistente (placeholder per l'integrazione AI)
-    async function simulateAssistantResponse(userMessage) {
-      try {
-        const response = await apiClient.inviaMessaggio({
-          IdConversazione: currentConversationId,
-          TestoMessaggio: `Grazie per il tuo messaggio: "${userMessage}". L'integrazione con l'AI è in fase di sviluppo. Presto potrai ricevere risposte intelligenti!`,
-          Mittente: 'Assistente',
-          TipoContenuto: 'Testo'
-        });
+    // Mostra indicatore "sta scrivendo..."
+    function showTypingIndicator() {
+      const chatContent = document.getElementById('chatContent');
+      const typingHtml = `
+        <div id="typing-indicator" class="single-chat-item">
+          <div class="user-avatar mt-1"><i class="bi bi-robot"></i></div>
+          <div class="user-message">
+            <div class="message-content bg-light">
+              <div class="typing-animation">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      chatContent.insertAdjacentHTML('beforeend', typingHtml);
+      scrollToBottom();
+    }
 
-        messages.push(response);
-        renderMessages();
-
-      } catch (error) {
-        console.error('Errore risposta assistente:', error);
+    // Rimuove indicatore "sta scrivendo..."
+    function hideTypingIndicator() {
+      const indicator = document.getElementById('typing-indicator');
+      if (indicator) {
+        indicator.remove();
       }
     }
 

@@ -268,6 +268,12 @@ class NugoloFamilyAPI {
     });
   }
 
+  async elaboraRispostaAssistente(idMessaggio, idConversazione) {
+    return await this.request(`/messaggi/${idMessaggio}/elabora-risposta?idConversazione=${idConversazione}`, {
+      method: 'POST'
+    });
+  }
+
   // ======================
   // DOCUMENTI
   // ======================
